@@ -1,0 +1,10 @@
+target/
+*.class
+*.jar
+.idea/
+*.iml
+*.log
+*.DS_Store
+__pycache__/
+*.pyc
+volumes/shared/*
