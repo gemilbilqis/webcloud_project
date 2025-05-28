@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+
+  c01_backend:
+    build:
+      context: ./C01_backend
+    container_name: c01_backend
+    hostname: c01_backend
+    networks:
+      - mynet
+    ports:
+      - "8080:8080"
+
+  c02_rabbitmq:
+    image: rabbitmq:3-management
+    container_name: c02_rabbitmq
+    hostname: c02_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - mynet
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  c03_processor:
+    build:
+      context: ./C03_processor
+    container_name: c03_processor
+    hostname: c03_processor
+    networks:
+      - mynet
+    volumes:
+      - ./volumes/shared:/tmp
+    depends_on:
+      - c02_rabbitmq
+      - c04_worker
+
+  c04_worker:
+    build: ./C04_worker
+    image: critoma/amd64_u24_noble_ism_security
+    container_name: c04_worker
+    hostname: c04_worker
+    networks:
+      - mynet
+    volumes:
+      - ./volumes/shared:/tmp
+
+networks:
+  mynet:
+    driver: bridge
