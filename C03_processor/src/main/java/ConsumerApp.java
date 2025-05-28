@@ -87,6 +87,7 @@ public class ConsumerApp {
                 java.io.File outFile = new java.io.File("/tmp/output.bmp");
                 if (outFile.exists()) {
                     System.out.println("Output BMP is ready at /tmp/output.bmp");
+                    storeImageInDB("/tmp/output.bmp", "output.bmp", operation, mode);
                 } else {
                     System.err.println("Output BMP not found!");
                 }
@@ -107,5 +108,27 @@ public class ConsumerApp {
         // Keep the app running
         System.out.println("Consumer is running.");
         Thread.currentThread().join();
+    }
+
+    public static void storeImageInDB(String filePath, String filename, String operation, String mode) {
+        String jdbcUrl = "jdbc:mysql://c05_mysql:3306/webcloud";
+        String user = "root";
+        String password = "root";
+
+        try (
+            Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+            PreparedStatement stmt = conn.prepareStatement(
+                "INSERT INTO encrypted_images (filename, operation, mode, image_data) VALUES (?, ?, ?, ?)"
+            );
+        ) {
+            stmt.setString(1, filename);
+            stmt.setString(2, operation);
+            stmt.setString(3, mode);
+            stmt.setBytes(4, Files.readAllBytes(Paths.get(filePath)));
+            stmt.executeUpdate();
+            System.out.println("✅ Image stored in MySQL DB successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
