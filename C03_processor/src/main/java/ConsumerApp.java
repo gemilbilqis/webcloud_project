@@ -4,6 +4,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+
 public class ConsumerApp {
     private static final String QUEUE_NAME = "bmp_encrypt";
 
@@ -13,7 +20,7 @@ public class ConsumerApp {
         factory.setUsername("guest");
         factory.setPassword("guest");
 
-        Connection connection = factory.newConnection();
+        com.rabbitmq.client.Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
         System.out.println("Connected to RabbitMQ on 172.18.0.3");
@@ -102,7 +109,7 @@ public class ConsumerApp {
             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
         };
 
-        // ❗ Use manual ack mode (false)
+        // Use manual ack mode (false)
         channel.basicConsume(QUEUE_NAME, false, callback, consumerTag -> { });
 
         // Keep the app running
@@ -116,8 +123,8 @@ public class ConsumerApp {
         String password = "root";
 
         try (
-            Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
-            PreparedStatement stmt = conn.prepareStatement(
+            java.sql.Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+            java.sql.PreparedStatement stmt = conn.prepareStatement(
                 "INSERT INTO encrypted_images (filename, operation, mode, image_data) VALUES (?, ?, ?, ?)"
             );
         ) {

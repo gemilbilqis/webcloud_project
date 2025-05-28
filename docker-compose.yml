@@ -37,6 +37,7 @@ services:
     depends_on:
       - c02_rabbitmq
       - c04_worker
+      - c05_mysql
 
   c04_worker:
     build: ./C04_worker
@@ -47,7 +48,24 @@ services:
       - mynet
     volumes:
       - ./volumes/shared:/tmp
+    
+  c05_mysql:
+    image: mysql:8
+    container_name: c05_mysql
+    hostname: c05_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: webcloud
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+    - mynet
 
 networks:
   mynet:
     driver: bridge
+
+volumes:
+  mysql_data:
