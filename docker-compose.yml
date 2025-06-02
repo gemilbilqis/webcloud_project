@@ -71,8 +71,29 @@ services:
       - mynet
     depends_on:
       - c05_mysql
+      - c07_mongo
     volumes:
       - ./C06_node_api:/app
+
+  c07_mongo:
+    image: mongo:latest
+    container_name: c07_mongo
+    hostname: c07_mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - mynet
+
+  c08_snmp_collector:
+    build:
+      context: ./C08_snmp_collector
+    container_name: c08_snmp_collector
+    hostname: c08_snmp_collector
+    networks:
+      - mynet
+    depends_on:
+      - c07_mongo
+
 
 
 networks:
@@ -81,3 +102,4 @@ networks:
 
 volumes:
   mysql_data:
+  mongo_data:
