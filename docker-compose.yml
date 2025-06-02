@@ -1,0 +1,83 @@
+services:
+
+  c01_backend:
+    build:
+      context: ./C01_backend
+    container_name: c01_backend
+    hostname: c01_backend
+    networks:
+      - mynet
+    ports:
+      - "8080:8080"
+
+  c02_rabbitmq:
+    image: rabbitmq:3-management
+    container_name: c02_rabbitmq
+    hostname: c02_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - mynet
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  c03_processor:
+    build:
+      context: ./C03_processor
+    container_name: c03_processor
+    hostname: c03_processor
+    networks:
+      - mynet
+    volumes:
+      - ./volumes/shared:/tmp
+    depends_on:
+      - c02_rabbitmq
+      - c04_worker
+      - c05_mysql
+
+  c04_worker:
+    build: ./C04_worker
+    image: critoma/amd64_u24_noble_ism_security
+    container_name: c04_worker
+    hostname: c04_worker
+    networks:
+      - mynet
+    volumes:
+      - ./volumes/shared:/tmp
+    
+  c05_mysql:
+    image: mysql:8
+    container_name: c05_mysql
+    hostname: c05_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: webcloud
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./C05_mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+    - mynet
+
+  c06_node_api:
+    build: ./C06_node_api
+    container_name: c06_node_api
+    ports:
+      - "3000:3000"
+    networks:
+      - mynet
+    depends_on:
+      - c05_mysql
+    volumes:
+      - ./C06_node_api:/app
+
+
+networks:
+  mynet:
+    driver: bridge
+
+volumes:
+  mysql_data:
